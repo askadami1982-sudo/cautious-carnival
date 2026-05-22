@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#263e53">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="icons/custom-icon-192.png">
+<title>Sonic Spinball 64-bit iOS PWA</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: radial-gradient(circle at top, #4aa8ff 0, #143966 52%, #071525 100%);
+    color: white;
+    font-family: system-ui, Arial, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+  body {
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(15, 29, 48, .86);
+    border-bottom: 2px solid rgba(255,255,255,.12);
+  }
+  .title {
+    font-weight: 800;
+    letter-spacing: .2px;
+    white-space: nowrap;
+  }
+  .title span { color: #ffd84a; }
+  .buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  button, a.btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 9px 12px;
+    color: #10233a;
+    background: #ffd84a;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  a.btn.secondary, button.secondary {
+    background: #77dcff;
+  }
+  main {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
+  }
+  #gameShell {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+  }
+  #game {
+    width: min(100vw, 1120px);
+    height: min(calc(100vh - 120px), 720px);
+    background: #000;
+    border: 4px solid #06101f;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 55px rgba(0,0,0,.42);
+  }
+  #note {
+    font: 12px/1.35 monospace;
+    color: #eaf8ff;
+    opacity: .9;
+    padding: 6px 12px 10px;
+    text-align: center;
+  }
+  @media (max-width: 720px) {
+    header { padding: 7px; }
+    .title { font-size: 13px; }
+    button, a.btn { padding: 8px 9px; font-size: 12px; border-radius: 10px; }
+    #game {
+      width: 100vw;
+      height: calc(100vh - 84px);
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+    }
+    #note { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">⚡ <span>Sonic Spinball</span> 64-bit iOS PWA</div>
+  <div class="buttons">
+    <a class="btn" href="?rom=us">ROM US/EU</a>
+    <a class="btn secondary" href="?rom=jp">ROM J</a>
+    <button id="fullscreenBtn" class="secondary">Tam ekran</button>
+  </div>
+</header>
+
+<main>
+  <div id="gameShell">
+    <div id="game"></div>
+  </div>
+  <div id="note">
+    Bu paket ROM'u 64-bit'e dönüştürmez; iOS/Safari üzerinde 64-bit çalışan emülatör kabuğuyla oynatır. 
+    PWA için HTTPS bir yere yükleyip Safari'de “Ana Ekrana Ekle” yap.
+  </div>
+</main>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const selected = params.get("rom") === "jp" ? "jp" : "us";
+
+  window.EJS_player = "#game";
+  window.EJS_core = "segaMD";
+  window.EJS_gameUrl = selected === "jp" ? "assets/rom_J.bin" : "assets/rom.bin";
+  window.EJS_gameName = selected === "jp" ? "Sonic Spinball J" : "Sonic Spinball";
+  window.EJS_color = "#ffd84a";
+  window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+  window.EJS_startOnLoaded = true;
+  window.EJS_backgroundColor = "#000000";
+  window.EJS_volume = 0.65;
+
+  const loader = document.createElement("script");
+  loader.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+  loader.async = true;
+  document.body.appendChild(loader);
+
+  document.getElementById("fullscreenBtn").addEventListener("click", async () => {
+    const el = document.getElementById("game");
+    try {
+      if (el.requestFullscreen) await el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } catch (e) {}
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
